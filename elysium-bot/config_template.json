@@ -1,0 +1,14 @@
+{
+    "twitch": {
+        "client_id": "XXX",
+        "client_secret": "XXX",
+        "access_token": "XXX",
+        "channel_id": 1,
+        "expire_date": 1,
+        "watchlist": [
+            "streamer1",
+            "streamer2",
+            "streamer3"
+        ]
+    }
+}
