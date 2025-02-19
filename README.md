@@ -1,5 +1,4 @@
 <p align="center"><a href="https://CypherO2.github.io/work/#/ElysiumBot"><img class="logoimg" src="https://github.com/CypherO2/Elysium_DiscordBot/blob/main/assets/ElysiumBotIcon.png?raw=true" width="175" height="175" href="https://ritabot.org/"></a></p>
-<style>.rounded{border-radius:5px;}</style>
 <h1 align="center">𝓔𝓵𝔂𝓼𝓲𝓾𝓶</h1>
 <p align="center">A multi-purpose discord bot, with an expansive selection of commands.</p>
 
