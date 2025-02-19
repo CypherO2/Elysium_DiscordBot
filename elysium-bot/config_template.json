@@ -1,10 +1,10 @@
 {
     "twitch": {
-        "client_id": "XXX",
-        "client_secret": "XXX",
-        "access_token": "XXX",
-        "channel_id": 1,
-        "expire_date": 1,
+        "client_id": "xxx",
+        "client_secret": "xxx",
+        "access_token": "xxx",
+        "channel_id": "xxx",
+        "expire_date": 1669483138,
         "watchlist": [
             "streamer1",
             "streamer2",

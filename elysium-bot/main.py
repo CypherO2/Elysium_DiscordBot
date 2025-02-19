@@ -13,11 +13,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Constants #
-public_log = 1234227629557547029
-private_log = 1234227628924207283
-dev_id = 876876129368150018
+public_log = 1234227629557547029  # Change to you public bot log channel ID
+private_log = 1234227628924207283  # Change to you private bot log channel ID
+dev_id = 876876129368150018  # If you are hosting this bot, change this to your Discord UserID
 
-# Datetime for Client startup tracking #
+# Datetime for Client startup tracking
 start_time = datetime.now()
 
 # Load Client token from environment variables
