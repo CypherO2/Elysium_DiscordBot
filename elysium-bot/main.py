@@ -122,6 +122,19 @@ async def watchlistremove(interaction: discord.Interaction, streamername: str):
 
 
 @Client.tree.command(
+    name="setlivemessage",
+    description="Set the message that shows when someone goes live.",
+)
+@app_commands.describe(message="Input your message here", mentioned="Who are you @ing?")
+async def setlivemessage(
+    interaction: discord.Interaction, message: str, mentioned: str
+) -> None:
+
+    response = F.changemessage(newmessage=message, mentions=mentioned)
+    await interaction.response.send_message(response, ephemeral=True)
+
+
+@Client.tree.command(
     name="shutdown", description="Stops the Client [Privileged Command]."
 )
 async def shutdown(interaction: discord.Interaction) -> None:

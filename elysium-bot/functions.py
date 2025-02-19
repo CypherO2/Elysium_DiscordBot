@@ -1,7 +1,7 @@
 import json
 
 
-with open("elysium-bot/config.json") as config_file:
+with open("./config.json") as config_file:
     config = json.load(config_file)
 
 
@@ -33,6 +33,19 @@ def unfollowstreamer(streamer):
         except Exception as e:
             print(f"An error has occured in unfollowstreamer : {e}")
             return f"An error has occured in unfollowstreamer : {e}"
+
+
+def changemessage(newmessage, mentions):
+    try:
+        config["twitch"]["live_msg"] = f"{mentions}! {newmessage}"
+        with open("elysium-bot/config.json", "w") as config_file:
+            json.dump(config, config_file, indent=4)
+        # print(f"Your new message has been set.\nNew Message = {newmessage}")
+        newmessage = config["twitch"]["live_msg"]
+        return f"Your new message has been set.\nNew Message = {newmessage}"
+    except Exception as e:
+        # print(f"An Error occurred when changing the message -> {e}")
+        return f"An Error occurred when changing the message -> {e}"
 
 
 def streamerinlist(streamer: str) -> bool:

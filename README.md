@@ -34,12 +34,13 @@
 
 |Command|Description|
 |:------|:---------|
-|**/help**|Displays the help menu - contains a list of commands.|
-|**/runtime**|Shows how long the bot has been online.|
+|**/help**|Displays the help menu - contains a list of commands. |
+|**/runtime**|Shows how long the bot has been online. |
 |**/watchlist_add {streamer_name}**| Adds a Twitch streamer to the list of streamers to alert when they go Live. |
-|**/watchlist_remove {streamer_name}**|Removes a Twitch streamer from the list of streamers to alert when they go Live.|
-|**/shutdown**| Shuts the bot down displaying a message to the bot log |
-|**/maintainance**|Shuts the bot down displaying a message to the bot log about being down for maintainance|
+|**/watchlist_remove {streamer_name}**| Removes a Twitch streamer from the list of streamers to alert when they go Live. |
+|**/setlivemessage {message} {@Role}**| Allows for the creation of custom messages for stream notifications. |
+|**/shutdown**| Shuts the bot down displaying a message to the bot log. |
+|**/maintainance**|Shuts the bot down displaying a message to the bot log about being down for maintainance. |
 
 ## Requirements 🔃
 
@@ -49,7 +50,6 @@
 | discord.py | >v2.5.0 |
 | requests | >v2.31.0|
 | typing | >v3.7.4.3 |
-| asyncio | >v3.4.3 |
 
 ### Twitch Requirements
 Having a twitch developer account with 2FA enabled.

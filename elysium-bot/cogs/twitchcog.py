@@ -8,7 +8,7 @@ from discord.ext import commands, tasks
 from datetime import datetime, date, time, timezone, timedelta
 
 
-with open("elysium-bot/config.json") as config_file:
+with open("../config.json") as config_file:
     config = json.load(config_file)
 
 
@@ -85,10 +85,10 @@ def get_notifications():
 
         if user_name not in streams:
             online_users[user_name] = None  # User is not online
-            print(f"{user_name} is offline.")
+            # print(f"{user_name} is offline.")
         else:
             stream_data = streams[user_name]
-            print(f"{user_name} is online. Stream details: {stream_data}")
+            # print(f"{user_name} is online. Stream details: {stream_data}")
 
             # Convert the started_at string to a datetime object
             started_at = datetime.strptime(
@@ -96,7 +96,7 @@ def get_notifications():
             )
 
             # Print for debugging
-            print(f"Checking if {started_at} > {online_users[user_name]}")
+            # print(f"Checking if {started_at} > {online_users[user_name]}")
 
             # Ensure we are comparing datetime objects
             if online_users[user_name] is None or started_at > online_users[user_name]:
@@ -133,6 +133,7 @@ class twitch(commands.Cog):
         if not channel:
             return
 
+        live_message = config["twitch"]["live_msg"]
         notifications = get_notifications()
         for notification in notifications:
             game = "{}".format(notification["game_name"])
@@ -146,7 +147,7 @@ class twitch(commands.Cog):
                     color=0x001EFF,
                 )
                 embed.set_author(
-                    name="{} Stream ist jetzt Live".format(notification["user_name"]),
+                    name="{} is Live".format(notification["user_name"]),
                     url="https://twitch.tv/{}".format(notification["user_login"]),
                 )
                 embed.add_field(name="Game", value="Unbekannt", inline=True)
@@ -160,23 +161,23 @@ class twitch(commands.Cog):
                         notification["user_login"]
                     )
                 )
-                await channel.send(embed=embed)
+                await channel.send(live_message, embed=embed)
             else:
                 embed = discord.Embed(
                     title="{}".format(notification["title"]),
                     url="https://twitch.tv/{}".format(notification["user_login"]),
-                    description="[Watch](https://twitch.tv/{})".format(
+                    description="[Watch Here](https://twitch.tv/{})".format(
                         notification["user_login"]
                     ),
                     color=0x001EFF,
                 )
                 embed.set_author(
-                    name="{} Stream ist jetzt Live".format(notification["user_name"]),
+                    name="{} is Live".format(notification["user_name"]),
                     url="https://twitch.tv/{}".format(notification["user_login"]),
                 )
                 embed.add_field(
                     name="Game",
-                    value="-{}".format(notification["game_name"]),
+                    value="{}".format(notification["game_name"]),
                     inline=True,
                 )
                 embed.add_field(
@@ -189,7 +190,7 @@ class twitch(commands.Cog):
                         notification["user_login"]
                     )
                 )
-                await channel.send(embed=embed)
+                await channel.send(live_message, embed=embed)
 
 
 async def setup(bot):
