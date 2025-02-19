@@ -90,13 +90,13 @@ Grab your Bot Token from the [Discord Developer Portal](https://discord.com/deve
 ```.env
 ELYSIAN_TOKEN="KUFHSDIUHKUh-UHLIUkudshliughj89w3eyr"
 ```
-> ![CAUTION]
+> [!CAUTION]
 > Never share your discord bot token, it can be used to control your bot!!!
 
 ------
 ### Twitch Integration Setup
 
-> ![NOTE]>
+> [!NOTE]>
 > Check out [this guide](https://github.com/Partymann2000/python-twtich-notification-system) by Partymann2000.
 
 1) Go to the [Twitch Developer Portal](https://dev.twitch.tv/) and `login`.
@@ -108,7 +108,7 @@ ELYSIAN_TOKEN="KUFHSDIUHKUh-UHLIUkudshliughj89w3eyr"
 7) Now click on `Manage` on your application.
 8) Grab you `clientID` and `clientSecret` and put them in your `config.json` file.
 
->![CAUTION]
+>[!CAUTION]
 > Never share your ClientID or ClientSecret!!!
 
 ```json
