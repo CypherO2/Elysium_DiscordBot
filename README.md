@@ -61,7 +61,7 @@ Having a discord developer account with 2FA enabled.
 
 ### Discord Setup
 
-1) Got to the [Discord Developer Portal](https://discord.com/developers) and `login`.
+1) Go to the [Discord Developer Portal](https://discord.com/developers) and `login`.
 2) Click on `New Application` in the upper-right hand side of your screen, under your profile picture.
 3) Name your application, accept the Discord Developer Terms of Service and Developer Policy and click `Create`.
 4) Now navigate to `OAuth2` in the sidebar and scroll to `OAuth2 URL Generator`.
