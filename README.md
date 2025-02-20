@@ -36,8 +36,8 @@
 |:------|:---------|
 |**/help**|Displays the help menu - contains a list of commands. |
 |**/runtime**|Shows how long the bot has been online. |
-|**/watchlist_add {streamer_name}**| Adds a Twitch streamer to the list of streamers to alert when they go Live. |
-|**/watchlist_remove {streamer_name}**| Removes a Twitch streamer from the list of streamers to alert when they go Live. |
+|**/watchlist {action} {streamer_name}**| Adds a Twitch streamer to the list of streamers to alert when they go Live. |
+|**/setlivechannel {channel}**| Allows for the changing of the channel the bot sends notifications in. |
 |**/setlivemessage {message} {@Role}**| Allows for the creation of custom messages for stream notifications. |
 |**/shutdown**| Shuts the bot down displaying a message to the bot log. |
 |**/maintainance**|Shuts the bot down displaying a message to the bot log about being down for maintainance. |

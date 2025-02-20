@@ -8,7 +8,7 @@ from discord.ext import commands, tasks
 from datetime import datetime, date, time, timezone, timedelta
 
 
-with open("../config.json") as config_file:
+with open("config.json") as config_file:
     config = json.load(config_file)
 
 

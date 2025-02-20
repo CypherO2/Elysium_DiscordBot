@@ -3,7 +3,7 @@ import discord
 import os
 import requests
 import functions as F
-from typing import Final
+from typing import Final, Optional
 from datetime import datetime
 from discord.ext import commands
 from discord import app_commands
@@ -83,8 +83,13 @@ async def help_command(interaction: discord.Interaction):
     embed.add_field(
         name="Commands",
         value=f"""
-        **/help** - Displays this help menu.
-        **/runtime** - Shows how long the Client has been online.
+        **/help** - Displays the help menu - contains a list of commands.
+        **/runtime** - Shows how long the bot has been online.
+        **/watchlist {'{action} {streamer_name}'}** - Allows for the editing and viewing of the streamer list.
+        **/setlivemessage {'{message} {role}'}** - Allows for the creation of custom messages for stream notifications.
+        **/setlivechannel {'{channel}'}** - Allows for the changing of the channel the bot sends notifications in.
+        **/shutdown** - This command stops the bot (Authorised users only).
+        **/maintainance** - This command stops the bot for maintainance (Authorised users only).
         """,
         inline=False,
     )
@@ -92,32 +97,53 @@ async def help_command(interaction: discord.Interaction):
 
 
 @Client.tree.command(
-    name="watchlist_add",
-    description="Add a new streamer to the config file (use their name as is show in their twitch.tv link)",
+    name="watchlist",
+    description="Edit/ Show the list of Streamer",
 )
-@app_commands.describe(streamername="Who you are adding?")
-async def watchlistadd(interaction: discord.Interaction, streamername: str):
+@app_commands.describe(
+    action="What do you want to do?",
+    streamername="Who you are? (Not needed if your only viewing the list)",
+)
+async def watchlist(
+    interaction: discord.Interaction, action: str, streamername: Optional[str]
+):
+
     if interaction.user.id != twcord_userid:
         await interaction.response.send_message(
             "❌ You don't have permission to use this command.", ephemeral=True
         )
         return
-    response = F.followstreamer(streamer=streamername)
-    await interaction.response.send_message(response, ephemeral=True)
+    if action.lower() == "add":
+        response = F.followstreamer(streamer=streamername)
+        response = response.replace(", ", "\n")
+        await interaction.response.send_message(response, ephemeral=True)
+    elif action.lower() == "remove":
+        response = F.unfollowstreamer(streamer=streamername)
+        await interaction.response.send_message(response, ephemeral=True)
+    elif action.lower() == "show":
+        response = F.viewstreamers()
+        # response = response.
+        embed = discord.Embed(
+            title="Streamer List [Twitch]",
+            description="Here is the list of streamers your listening for.",
+        )
+        for streamer in response:
+            embed.add_field(name=f"{streamer}", value="")
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 @Client.tree.command(
-    name="watchlist_remove",
-    description="Remove a streamer from the config file (use their name as is show in their twitch.tv link)",
+    name="setlivechannel",
+    description="Choose the channel you want to send the live notifications in.",
 )
-@app_commands.describe(streamername="Who you are removing")
-async def watchlistremove(interaction: discord.Interaction, streamername: str):
+@app_commands.describe(channel="channel?")
+async def setlivechannel(interaction: discord.Interaction, channel: str):
     if interaction.user.id != twcord_userid:
         await interaction.response.send_message(
             "❌ You don't have permission to use this command.", ephemeral=True
         )
         return
-    response = F.unfollowstreamer(streamer=streamername)
+    response = F.changelivechannel(channel=channel)
     await interaction.response.send_message(response, ephemeral=True)
 
 
@@ -129,7 +155,11 @@ async def watchlistremove(interaction: discord.Interaction, streamername: str):
 async def setlivemessage(
     interaction: discord.Interaction, message: str, mentioned: str
 ) -> None:
-
+    if interaction.user.id != twcord_userid:
+        await interaction.response.send_message(
+            "❌ You don't have permission to use this command.", ephemeral=True
+        )
+        return
     response = F.changemessage(newmessage=message, mentions=mentioned)
     await interaction.response.send_message(response, ephemeral=True)
 
