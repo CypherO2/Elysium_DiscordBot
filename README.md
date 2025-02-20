@@ -96,7 +96,7 @@ ELYSIAN_TOKEN="KUFHSDIUHKUh-UHLIUkudshliughj89w3eyr"
 ------
 ### Twitch Integration Setup
 
-> [!NOTE]>
+> [!NOTE]
 > Check out [this guide](https://github.com/Partymann2000/python-twtich-notification-system) by Partymann2000.
 
 1) Go to the [Twitch Developer Portal](https://dev.twitch.tv/) and `login`.
