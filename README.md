@@ -15,6 +15,9 @@
 
 <h2>Contents 📃</h2>
 
+> [!Note]
+> The instance of this bot, that I host, is not available in any servers beyond the support server and a friend's. This is because it has very limited functionality at the moment.
+
 - [Commands 🌐](#commands-)
 - [Requirements 🔃](#requirements-)
   - [Python Requirements](#python-requirements)
