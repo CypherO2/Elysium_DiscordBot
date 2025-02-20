@@ -15,6 +15,9 @@
 
 <h2>Contents 📃</h2>
 
+> [!Note]
+> The instance of this bot, that I host, is not available in any servers beyond the support server and a friend's. This is because it has very limited functionality at the moment.
+
 - [Commands 🌐](#commands-)
 - [Requirements 🔃](#requirements-)
   - [Python Requirements](#python-requirements)
@@ -61,7 +64,7 @@ Having a discord developer account with 2FA enabled.
 
 ### Discord Setup
 
-1) Got to the [Discord Developer Portal](https://discord.com/developers) and `login`.
+1) Go to the [Discord Developer Portal](https://discord.com/developers) and `login`.
 2) Click on `New Application` in the upper-right hand side of your screen, under your profile picture.
 3) Name your application, accept the Discord Developer Terms of Service and Developer Policy and click `Create`.
 4) Now navigate to `OAuth2` in the sidebar and scroll to `OAuth2 URL Generator`.
@@ -96,7 +99,7 @@ ELYSIAN_TOKEN="KUFHSDIUHKUh-UHLIUkudshliughj89w3eyr"
 ------
 ### Twitch Integration Setup
 
-> [!NOTE]>
+> [!NOTE]
 > Check out [this guide](https://github.com/Partymann2000/python-twtich-notification-system) by Partymann2000.
 
 1) Go to the [Twitch Developer Portal](https://dev.twitch.tv/) and `login`.
