@@ -26,9 +26,6 @@
 - [Setup 🖥️](#setup-️)
   - [Discord Setup](#discord-setup)
   - [Python Setup](#python-setup)
-    - [Step 1](#step-1)
-    - [Step 2](#step-2)
-    - [Step 3](#step-3)
   - [Twitch Integration Setup](#twitch-integration-setup)
 - [Support 🤝](#support-)
 - [License 🪪](#license-)
@@ -75,26 +72,39 @@ Having a discord developer account with 2FA enabled.
 ------
 ### Python Setup
 
-#### Step 1
-Ensure you have Python `v3.11` or greater installed.
+- Ensure you have Python `v3.11` or greater installed and ensure that the following are installed:
+  - discord.py
+  - requests
+  - asyncio
+  - typing
 
-#### Step 2
-Ensure that the following are installed:
-- discord.py
-- requests
-- asyncio
-- typing
+- In the root directory create a `.env` file.
+inside the `.env` file you will have a constant called `ELYSIUM_TOKEN`. 
+  > [!CAUTION]
+    > Never share your discord bot token, it can be used to control your bot!!!
 
-#### Step 3
-In the root directory create a `.env` file.
-inside the `.env` file you will have a constant called `ELYSIUM_TOKEN`.
+  Grab your Bot Token from the [Discord Developer Portal](https://discord.com/developers) and put it into your `.env` file like so:
+  ```.env
+  ELYSIAN_TOKEN="KUFHSDIUHKUh-UHLIUkudshliughj89w3eyr"
+  ```
 
-Grab your Bot Token from the [Discord Developer Portal](https://discord.com/developers) and put it into your `.env` file like so:
-```.env
-ELYSIAN_TOKEN="KUFHSDIUHKUh-UHLIUkudshliughj89w3eyr"
-```
-> [!CAUTION]
-> Never share your discord bot token, it can be used to control your bot!!!
+- Edit the `main.py` file's constants, you'll need to change the `public_log` and `private_log` to the discord channel ids in which you want bot info such as, turning on and off to be displayed.
+
+  Set the `dev_id` to the discord user id of yourself or the person managing the bot.
+
+  Finally, change `twcord_userid` to the discord user id of the person that will have control over the bot's twitch notification commands.
+
+  When your done it should look like so:
+  ```py
+  # Constants #
+  public_log = 1234227629557547029  # Change to you public bot log channel ID
+  private_log = 1234227628924207283  # Change to you private bot log channel ID
+  dev_id = 876876129368150018  # If you are hosting this bot, change this to your Discord UserID
+  twcord_userid = (
+      972663150455451689  # The ID of the person handling the bot's Twitch notifications.
+  )
+  ```
+
 
 ------
 ### Twitch Integration Setup
