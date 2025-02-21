@@ -72,6 +72,9 @@ Having a discord developer account with 2FA enabled.
 ------
 ### Python Setup
 
+> [!CAUTION]
+> Never share your discord bot token, it can be used to control your bot!!!
+
 - Ensure you have Python `v3.11` or greater installed and ensure that the following are installed:
   - discord.py
   - requests
@@ -80,8 +83,7 @@ Having a discord developer account with 2FA enabled.
 
 - In the root directory create a `.env` file.
 inside the `.env` file you will have a constant called `ELYSIUM_TOKEN`. 
-  > [!CAUTION]
-  > Never share your discord bot token, it can be used to control your bot!!!
+
 
   Grab your Bot Token from the [Discord Developer Portal](https://discord.com/developers) and put it into your `.env` file like so:
   ```.env
