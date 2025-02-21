@@ -39,11 +39,11 @@
 |:------|:---------|
 |**/help**|Displays the help menu - contains a list of commands. |
 |**/runtime**|Shows how long the bot has been online. |
-|**/watchlist {action} {streamer_name}**| Adds a Twitch streamer to the list of streamers to alert when they go Live. |
-|**/setlivechannel {channel}**| Allows for the changing of the channel the bot sends notifications in. |
-|**/setlivemessage {message} {@Role}**| Allows for the creation of custom messages for stream notifications. |
+|**/watchlist {show/remove/add} {streamer_name}**| Allows for the managing of the Twitch streamer list for to LIVE alerts - the streamer name is only needed when adding or removing and must be as is shown in their link e.g. `https://twitch.tv/{streamer_name}`. |
+|**/setlivechannel {channel}**| Allows for the changing of the channel the bot sends notifications in. The channel must be input using discord's in-built channel handling e.g. `#{channel}` |
+|**/setlivemessage {message} {@Role}**| Allows for the creation of custom messages for stream notifications. The role must be added using the discord in-built role handling e.g. `@{role}` |
 |**/shutdown**| Shuts the bot down displaying a message to the bot log. |
-|**/maintainance**|Shuts the bot down displaying a message to the bot log about being down for maintainance. |
+|**/maintainance**| Shuts the bot down displaying a message to the bot log about being down for maintainance. |
 
 ## Requirements 🔃
 
