@@ -8,8 +8,9 @@ from discord.ext import commands, tasks
 from datetime import datetime, date, time, timezone, timedelta
 
 
-with open("config.json") as config_file:
-    config = json.load(config_file)
+def load_config():
+    with open("config.json") as config_file:
+        return json.load(config_file)
 
 
 def get_app_access_token():
@@ -129,6 +130,8 @@ class twitch(commands.Cog):
 
     @tasks.loop(seconds=90)
     async def check_twitch_online_streamers(self):
+        global config
+        config = load_config()
         channel = self.bot.get_channel(config["twitch"]["channel_id"])
         if not channel:
             return
@@ -144,13 +147,13 @@ class twitch(commands.Cog):
                     description="[Watch](https://twitch.tv/{})".format(
                         notification["user_login"]
                     ),
-                    color=0x001EFF,
+                    color=0x6441A5,
                 )
                 embed.set_author(
-                    name="{} is Live".format(notification["user_name"]),
+                    name="{} is now live on Twitch!".format(notification["user_name"]),
                     url="https://twitch.tv/{}".format(notification["user_login"]),
                 )
-                embed.add_field(name="Game", value="Unbekannt", inline=True)
+                embed.add_field(name="Game", value="Unknown", inline=True)
                 embed.add_field(
                     name="Viewers",
                     value="{}".format(notification["viewer_count"]),
@@ -169,7 +172,7 @@ class twitch(commands.Cog):
                     description="[Watch Here](https://twitch.tv/{})".format(
                         notification["user_login"]
                     ),
-                    color=0x001EFF,
+                    color=0x6441A5,
                 )
                 embed.set_author(
                     name="{} is Live".format(notification["user_name"]),
