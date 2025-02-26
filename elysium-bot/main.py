@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Constants #
+bot_notifications = 1234227629352288275
 public_log = 1234227629557547029  # Change to you public bot log channel ID
 private_log = 1234227628924207283  # Change to you private bot log channel ID
 dev_id = 876876129368150018  # If you are hosting this bot, change this to your Discord UserID
@@ -88,8 +89,7 @@ async def help_command(interaction: discord.Interaction):
         **/watchlist {'{action} {streamer_name}'}** - Allows for the editing and viewing of the streamer list.
         **/setlivemessage {'{message} {role}'}** - Allows for the creation of custom messages for stream notifications.
         **/setlivechannel {'{channel}'}** - Allows for the changing of the channel the bot sends notifications in.
-        **/shutdown** - This command stops the bot (Authorised users only).
-        **/maintainance** - This command stops the bot for maintainance (Authorised users only).
+        **/shutdown {'{reason}'}** - This command stops the bot (Authorised users only).
         """,
         inline=False,
     )
@@ -167,7 +167,8 @@ async def setlivemessage(
 @Client.tree.command(
     name="shutdown", description="Stops the Client [Privileged Command]."
 )
-async def shutdown(interaction: discord.Interaction) -> None:
+@app_commands.describe(reason="Why is the bot being shutdown?")
+async def shutdown(interaction: discord.Interaction, reason: Optional[str]) -> None:
     if interaction.user.id != dev_id:
         await interaction.response.send_message(
             "❌ You don't have permission to use this command.", ephemeral=True
@@ -178,7 +179,7 @@ async def shutdown(interaction: discord.Interaction) -> None:
     time_elapsed = now - start_time
     exit_msg = discord.Embed(
         title="𝓔𝓵𝔂𝓼𝓲𝓾𝓶",
-        description=f"**Status**: 🔴 Offline\n**Runtime**: {time_elapsed}",
+        description=f"**Status**: 🔴 Offline\n**Reason**: {reason}\n**Runtime**: {time_elapsed}",
         timestamp=now,
     )
 
@@ -194,35 +195,20 @@ async def shutdown(interaction: discord.Interaction) -> None:
     await Client.close()
 
 
-@Client.tree.command(
-    name="startmaintainance",
-    description="Stops the Client for Maintainance [Privileged Command].",
-)
-async def startmaintainance(interaction: discord.Interaction):
-    if interaction.user.id != dev_id:
-        await interaction.response.send_message(
-            "❌ You don't have permission to use this command.", ephemeral=True
-        )
-        return
-
-    now = datetime.now()
-    time_elapsed = now - start_time
-    exit_msg = discord.Embed(
-        title="𝓔𝓵𝔂𝓼𝓲𝓾𝓶",
-        description=f"**Status**: 🔴 Offline for Maintainance\n**Runtime**: {time_elapsed}",
-        timestamp=now,
+@Client.tree.command(name="suggestion", description="send a suggestion for the bot")
+@app_commands.describe(suggestion="What is your suggestion?")
+async def suggest_command(interaction: discord.Interaction, suggestion: str):
+    channel = Client.get_channel(bot_notifications)
+    embed = discord.Embed(
+        title="**Suggestion!**", description=f"{suggestion}", color=0x5A0C8A
     )
-
-    channel1 = Client.get_channel(public_log)
-    channel2 = Client.get_channel(private_log)
-
-    if channel1:
-        await channel1.send(embed=exit_msg)
-    if channel2:
-        await channel2.send(embed=exit_msg)
-
-    await interaction.response.send_message("Bot is shutting down...", ephemeral=True)
-    await Client.close()
+    await asyncio.gather(
+        channel.send(embed=embed),
+        interaction.response.send_message(
+            f"Your suggestion has been registered!\n`Your Suggestion: {suggestion}`",
+            ephemeral=True,
+        ),
+    )
 
 
 # Run the Client
