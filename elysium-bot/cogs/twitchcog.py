@@ -8,8 +8,11 @@ from discord.ext import commands, tasks
 from datetime import datetime, date, time, timezone, timedelta
 
 
+allowed_mentions = discord.AllowedMentions(roles=True)
+
+
 def load_config():
-    with open("config.json") as config_file:
+    with open("elysium-bot/config.json") as config_file:
         return json.load(config_file)
 
 
@@ -177,7 +180,9 @@ class twitch(commands.Cog):
                         notification["user_login"]
                     )
                 )
-                await channel.send(live_message, embed=embed)
+                await channel.send(
+                    live_message, allowed_mentions=allowed_mentions, embed=embed
+                )
             else:
                 embed = discord.Embed(
                     title="{}".format(notification["title"]),
@@ -206,7 +211,9 @@ class twitch(commands.Cog):
                         notification["user_login"]
                     )
                 )
-                await channel.send(live_message, embed=embed)
+                await channel.send(
+                    live_message, allowed_mentions=allowed_mentions, embed=embed
+                )
 
 
 async def setup(bot):
