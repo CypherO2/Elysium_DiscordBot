@@ -90,6 +90,7 @@ async def help_command(interaction: discord.Interaction):
         **/setlivemessage {'{message} {role}'}** - Allows for the creation of custom messages for stream notifications.
         **/setlivechannel {'{channel}'}** - Allows for the changing of the channel the bot sends notifications in.
         **/shutdown {'{reason}'}** - This command stops the bot (Authorised users only).
+        **/suggestion {'{suggestion}'}** - This command allows for the user to send a suggestion for update to the bot.
         """,
         inline=False,
     )
