@@ -40,6 +40,7 @@
 |**/setlivechannel {channel}**| Allows for the changing of the channel the bot sends notifications in. The channel must be input using discord's in-built channel handling e.g. `#{channel}` |
 |**/setlivemessage {message} {@Role}**| Allows for the creation of custom messages for stream notifications. The role must be added using the discord in-built role handling e.g. `@{role}` |
 |**/shutdown {reason}**| Shuts the bot down displaying a message to the bot log. |
+|**/suggestion {suggestion}**| This command allows for the user to send a suggestion for update to the bot. (it is suggested that you keep the channel id for this the same as usual if you are deploying it on your own - so that suggestions might reach me and be added)|
 
 ## Requirements 🔃
 
