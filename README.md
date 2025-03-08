@@ -19,6 +19,9 @@
 > The instance of this bot, that I host, is not available in any servers beyond the support server and a friend's. This is because it has very limited functionality at the moment.
 
 - [Commands 🌐](#commands-)
+  - [Twitch](#twitch)
+  - [Moderation](#moderation)
+  - [Utility](#utility)
 - [Requirements 🔃](#requirements-)
   - [Python Requirements](#python-requirements)
   - [Twitch Requirements](#twitch-requirements)
@@ -32,13 +35,26 @@
 
 ## Commands 🌐
 
+### Twitch
+
 |Command|Description|
-|:------|:---------|
-|**/help**|Displays the help menu - contains a list of commands. |
-|**/runtime**|Shows how long the bot has been online. |
+|:------|:----------|
 |**/watchlist {show/remove/add} {streamer_name}**| Allows for the managing of the Twitch streamer list for to LIVE alerts - the streamer name is only needed when adding or removing and must be as is shown in their link e.g. `https://twitch.tv/{streamer_name}`. |
 |**/setlivechannel {channel}**| Allows for the changing of the channel the bot sends notifications in. The channel must be input using discord's in-built channel handling e.g. `#{channel}` |
 |**/setlivemessage {message} {@Role}**| Allows for the creation of custom messages for stream notifications. The role must be added using the discord in-built role handling e.g. `@{role}` |
+
+### Moderation
+
+|Command|Description|
+|:------|:----------|
+
+
+### Utility
+
+|Command|Description|
+|:------|:----------|
+|**/help**|Displays the help menu - contains a list of commands. |
+|**/runtime**|Shows how long the bot has been online. |
 |**/shutdown {reason}**| Shuts the bot down displaying a message to the bot log. |
 |**/suggestion {suggestion}**| This command allows for the user to send a suggestion for update to the bot. (it is suggested that you keep the channel id for this the same as usual if you are deploying it on your own - so that suggestions might reach me and be added)|
 

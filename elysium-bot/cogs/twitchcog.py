@@ -4,11 +4,16 @@ import asyncio
 import datetime
 import requests
 import time
+from typing import Optional
 from discord.ext import commands, tasks
+from discord import app_commands
 from datetime import datetime, date, time, timezone, timedelta
 
 
 allowed_mentions = discord.AllowedMentions(roles=True)
+twcord_userid = (
+    972663150455451689  # The ID of the person handling the bot's Twitch notifications.
+)
 
 
 def load_config():
@@ -116,6 +121,74 @@ def get_notifications():
     return notifications
 
 
+def followstreamer(streamer):
+    streamer = streamer.lower()
+    if streamerinlist(streamer):
+        return f"{streamer} is already on the list."
+    else:
+        config["twitch"]["watchlist"].append(streamer)
+        try:
+            with open("elysium-bot/config.json", "w") as config_file:
+                json.dump(config, config_file, indent=4)
+            return f"{streamer} has been successfully added to the list."
+        except Exception as e:
+            print(f"An error has occured in followstreamer : {e}")
+            return f"An error has occured in followstreamer : {e}"
+
+
+def unfollowstreamer(streamer):
+    streamer = streamer.lower()
+    if not streamerinlist(streamer):
+        return f"{streamer} is not in the list - cannot be removed."
+    else:
+        config["twitch"]["watchlist"].remove(streamer)
+        try:
+            with open("elysium-bot/config.json", "w") as config_file:
+                json.dump(config, config_file, indent=4)
+            return f"{streamer} has been successfully removed from the list."
+        except Exception as e:
+            print(f"An error has occured in unfollowstreamer : {e}")
+            return f"An error has occured in unfollowstreamer : {e}"
+
+
+def viewstreamers():
+    streamer_list = config["twitch"]["watchlist"]
+    return streamer_list
+
+
+def changemessage(newmessage, mentions):
+    try:
+        config["twitch"]["live_msg"] = f"{mentions}! {newmessage}"
+        with open("elysium-bot/config.json", "w") as config_file:
+            json.dump(config, config_file, indent=4)
+        # print(f"Your new message has been set.\nNew Message = {newmessage}")
+        newmessage = config["twitch"]["live_msg"]
+        return f"Your new message has been set.\nNew Message = {newmessage}"
+    except Exception as e:
+        # print(f"An Error occurred when changing the message -> {e}")
+        return f"An Error occurred when changing the message -> {e}"
+
+
+def changelivechannel(channel):
+    # print(f"LIVE Channel : {channel}")
+    try:
+        channel = channel.replace("<#", "").replace(">", "")
+        config["twitch"]["channel_id"] = channel
+        with open("elysium-bot/config.json", "w") as config_file:
+            json.dump(config, config_file, indent=4)
+        return f"The channel has been set to: {channel}"
+    except Exception as e:
+        return f"An Error occurred when changing the channel -> {e}"
+
+
+def streamerinlist(streamer: str) -> bool:
+    streamer_list = config["twitch"]["watchlist"]
+    if streamer in streamer_list:
+        return True
+    else:
+        return False
+
+
 class twitch(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -214,6 +287,76 @@ class twitch(commands.Cog):
                 await channel.send(
                     live_message, allowed_mentions=allowed_mentions, embed=embed
                 )
+
+    @app_commands.command(
+        name="watchlist",
+        description="Edit/ Show the list of Streamer",
+    )
+    @app_commands.describe(
+        action="What do you want to do?",
+        streamername="Who you are? (Not needed if your only viewing the list)",
+    )
+    async def watchlist(
+        self,
+        interaction: discord.Interaction,
+        action: str,
+        streamername: Optional[str],
+    ):
+
+        if interaction.user.id != twcord_userid:
+            await interaction.response.send_message(
+                "❌ You don't have permission to use this command.", ephemeral=True
+            )
+            return
+        if action.lower() == "add":
+            response = followstreamer(streamer=streamername)
+            response = response.replace(", ", "\n")
+            await interaction.response.send_message(response, ephemeral=True)
+        elif action.lower() == "remove":
+            response = unfollowstreamer(streamer=streamername)
+            await interaction.response.send_message(response, ephemeral=True)
+        elif action.lower() == "show":
+            response = viewstreamers()
+            # response = response.
+            embed = discord.Embed(
+                title="Streamer List [Twitch]",
+                description="Here is the list of streamers your listening for.",
+            )
+            for streamer in response:
+                embed.add_field(name=f"{streamer}", value="")
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @app_commands.command(
+        name="setlivechannel",
+        description="Choose the channel you want to send the live notifications in.",
+    )
+    @app_commands.describe(channel="channel?")
+    async def setlivechannel(self, interaction: discord.Interaction, channel: str):
+        if interaction.user.id != twcord_userid:
+            await interaction.response.send_message(
+                "❌ You don't have permission to use this command.", ephemeral=True
+            )
+            return
+        response = changelivechannel(channel=channel)
+        await interaction.response.send_message(response, ephemeral=True)
+
+    @app_commands.command(
+        name="setlivemessage",
+        description="Set the message that shows when someone goes live.",
+    )
+    @app_commands.describe(
+        message="Input your message here", mentioned="Who are you @ing?"
+    )
+    async def setlivemessage(
+        self, interaction: discord.Interaction, message: str, mentioned: str
+    ) -> None:
+        if interaction.user.id != twcord_userid:
+            await interaction.response.send_message(
+                "❌ You don't have permission to use this command.", ephemeral=True
+            )
+            return
+        response = changemessage(newmessage=message, mentions=mentioned)
+        await interaction.response.send_message(response, ephemeral=True)
 
 
 async def setup(bot):
