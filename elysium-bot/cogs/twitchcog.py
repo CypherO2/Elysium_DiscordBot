@@ -17,7 +17,7 @@ twcord_userid = (
 
 
 def load_config():
-    with open("elysium-bot/config.json") as config_file:
+    with open("../config.json") as config_file:
         return json.load(config_file)
 
 
@@ -74,9 +74,9 @@ def get_streams(users):
     )
 
     streams_data = response.json().get("data", [])
-    # print(f"Streams data: {streams_data}")  # Debugging response
+    print(f"Streams data: {streams_data}")  # Debugging response
 
-    # print({entry["user_login"]: entry for entry in streams_data})
+    print({entry["user_login"]: entry for entry in streams_data})
     return {entry["user_login"]: entry for entry in streams_data}
 
 
@@ -90,18 +90,18 @@ def get_notifications():
 
     notifications = []
     for user_name in config["twitch"]["watchlist"]:
-        # print(f"Checking user: {user_name}")
+        print(f"Checking user: {user_name}")
 
         if user_name not in online_users:
             online_users[user_name] = None  # Start as None to signify offline
-            # print(f"Initializing {user_name} as offline.")
+            print(f"Initializing {user_name} as offline.")
 
         if user_name not in streams:
             online_users[user_name] = None  # User is not online
-            # print(f"{user_name} is offline.")
+            print(f"{user_name} is offline.")
         else:
             stream_data = streams[user_name]
-            # print(f"{user_name} is online. Stream details: {stream_data}")
+            print(f"{user_name} is online. Stream details: {stream_data}")
 
             # Convert the started_at string to a datetime object
             started_at = datetime.strptime(
@@ -109,7 +109,7 @@ def get_notifications():
             )
 
             # Print for debugging
-            # print(f"Checking if {started_at} > {online_users[user_name]}")
+            print(f"Checking if {started_at} > {online_users[user_name]}")
 
             # Ensure we are comparing datetime objects
             if online_users[user_name] is None or started_at > online_users[user_name]:
@@ -117,7 +117,7 @@ def get_notifications():
                 notifications.append(stream_data)
                 online_users[user_name] = started_at  # Update with the new started_at
 
-    # print(f"Notifications: {notifications}")  # Debug line
+    print(f"Notifications: {notifications}")  # Debug line
     return notifications
 
 
@@ -202,9 +202,10 @@ class twitch(commands.Cog):
         print("Access token is checked")
         time = datetime.now()
         current_time = time.timestamp()
-        # print(f"Current time: {current_time}")
-        # print(f"Expire date: {config.get('twitch', {}).get('expire_date', 'MISSING')}")
-        # print(int(current_time) >= config["twitch"]["expire_date"])
+        config = load_config()
+        print(f"Current time: {current_time}")
+        print(f"Expire date: {config.get('twitch', {}).get('expire_date', 'MISSING')}")
+        print(int(current_time) >= config["twitch"]["expire_date"])
         if int(current_time) >= config["twitch"]["expire_date"]:
             access_token = get_app_access_token()
             config["twitch"]["access_token"] = access_token
@@ -217,11 +218,11 @@ class twitch(commands.Cog):
     async def check_twitch_online_streamers(self):
         global config
         config = load_config()
-        # print("Test loop 90")
+        print("Test loop 90")
         channel_id = int(config["twitch"]["channel_id"])
         channel = self.bot.get_channel(channel_id)
-        # print(f"🔍 Checking channel_id: {channel_id} (type: {type(channel_id)})")
-        # print(f"📢 Found channel: {channel}")  # Should NOT be None
+        print(f"🔍 Checking channel_id: {channel_id} (type: {type(channel_id)})")
+        print(f"📢 Found channel: {channel}")  # Should NOT be None
         if not channel:
             return
 
