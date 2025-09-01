@@ -191,3 +191,7 @@ To get support for the Elysium discord bot, feel free to :
 ## License 🪪
 
 This repository is listed under the [MIT License](/LICENSE)
+
+## Contributing 📃
+
+To contribute to this project please read our [contributing guidelines](CONTRIBUTING.md)
