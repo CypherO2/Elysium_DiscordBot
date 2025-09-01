@@ -81,9 +81,22 @@ Having a discord developer account with 2FA enabled.
      - asyncio
      - typing
 
+<<<<<<< Updated upstream
 2) In the root directory create a `.env` file.
 inside the `.env` file you will have a constant called `ELYSIUM_TOKEN`. Grab your Bot Token from the [Discord Developer Portal](https://discord.com/developers) and put it into your `.env` file like so:
      ```.env
+=======
+   - discord.py
+   - requests
+   - asyncio
+   - typing
+   - ffmpeg
+   - yt_dlp
+
+2. In the root directory create a `.env` file.
+   inside the `.env` file you will have a constant called `ELYSIUM_TOKEN`. Grab your Bot Token from the [Discord Developer Portal](https://discord.com/developers) and put it into your `.env` file like so:
+   `.env
+>>>>>>> Stashed changes
      ELYSIAN_TOKEN="KUFHSDIUHKUh-UHLIUkudshliughj89w3eyr"
      ```
 
@@ -148,10 +161,15 @@ config.json
 ## Support 🤝
 To get support for the Elysium discord bot, feel free to :
 - Open an issue on Github
+<<<<<<< Updated upstream
 - Join the [discord server]()
 - Or to visit my [website](https://CypherO2.github.io/work/#/ElysiumBot) 
 
+=======
+- Join the [discord server](https://discord.gg/8QwyeAhPvv)
+- Or to visit my [website](https://CypherO2.github.io/work/#/ElysiumBot)
+>>>>>>> Stashed changes
 
 ## License 🪪
 
-This repository is listed under [the MIT License](/LICENSE)
+This repository is listed under the [MIT License](/LICENSE)
