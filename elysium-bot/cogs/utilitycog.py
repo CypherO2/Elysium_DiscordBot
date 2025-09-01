@@ -1,12 +1,9 @@
 import discord
-import json
-import datetime
-import typing
+from datetime import datetime
 import asyncio
 from typing import Optional
-from discord.ext import commands, tasks
+from discord.ext import commands
 from discord import app_commands
-from datetime import datetime, date, time, timezone, timedelta
 
 # Datetime for Client startup tracking
 start_time = datetime.now()
