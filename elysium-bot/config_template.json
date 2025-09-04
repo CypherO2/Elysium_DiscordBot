@@ -1,15 +1,17 @@
 {
+  "": {
     "twitch": {
-        "client_id": "xxx",
-        "client_secret": "xxx",
-        "access_token": "xxx",
-        "channel_id": "xxx",
-        "live_msg": "xxx",
-        "expire_date": 1669483138,
-        "watchlist": [
-            "streamer1",
-            "streamer2",
-            "streamer3"
-        ]
+      "client_id": "xxx",
+      "client_secret": "xxx",
+      "access_token": "xxx",
+      "channel_id": "xxx",
+      "live_msg": "xxx",
+      "expire_date": 1669483138,
+      "watchlist": ["streamer1", "streamer2", "streamer3"]
+    },
+    "moderation": {
+      "mod_role": "xxx",
+      "block_words": ["xxx", "xxx", "xxx"]
     }
+  }
 }
