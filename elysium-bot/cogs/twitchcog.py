@@ -8,7 +8,7 @@ from discord import app_commands
 from requests import post, get
 from requests.exceptions import RequestException, Timeout
 
-from config import get_twitch_config, load_config, save_config
+from config import get_twitch_config, get_bot_config, load_config, save_config
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,19 @@ def get_twcord_userid() -> int:
     """Get the Twitch command user ID from config."""
     config = get_twitch_config()
     return config.get("twcord_userid", 0)
+
+
+def get_dev_id() -> int:
+    """Get the dev user ID from config."""
+    bot_config = get_bot_config()
+    return bot_config.get("dev_id", 0)
+
+
+def is_authorized_user(user_id: int) -> bool:
+    """Check if a user is authorized to use Twitch commands (dev or twitch user)."""
+    dev_id = get_dev_id()
+    twitch_user_id = get_twcord_userid()
+    return user_id == dev_id or user_id == twitch_user_id
 
 
 def get_app_access_token() -> str:
@@ -394,46 +407,84 @@ class Twitch(commands.Cog):
         streamername: Optional[str] = None,
     ):
         """Manage the Twitch streamer watchlist."""
-        if interaction.user.id != get_twcord_userid():
+        if not is_authorized_user(interaction.user.id):
+            logger.warning(
+                f"Unauthorized /watchlist attempt by {interaction.user} (ID: {interaction.user.id}) "
+                f"in {interaction.guild.name if interaction.guild else 'DM'} - Action: {action}"
+            )
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command.", ephemeral=True
             )
             return
 
+        user_type = "dev" if interaction.user.id == get_dev_id() else "twitch user"
+        logger.info(
+            f"Command /watchlist used by authorized {user_type} {interaction.user} (ID: {interaction.user.id}) "
+            f"in {interaction.guild.name if interaction.guild else 'DM'} - Action: {action}, Streamer: {streamername or 'N/A'}"
+        )
         action_lower = action.lower()
 
-        if action_lower == "add":
-            if not streamername:
-                await interaction.response.send_message(
-                    "❌ Streamer name is required for adding.", ephemeral=True
+        try:
+            if action_lower == "add":
+                if not streamername:
+                    logger.warning(
+                        f"Watchlist add command used without streamer name by {interaction.user.id}"
+                    )
+                    await interaction.response.send_message(
+                        "❌ Streamer name is required for adding.", ephemeral=True
+                    )
+                    return
+                response = followstreamer(streamer=streamername)
+                await interaction.response.send_message(response, ephemeral=True)
+                logger.info(
+                    f"Watchlist add completed by {interaction.user.id}: {streamername}"
                 )
-                return
-            response = followstreamer(streamer=streamername)
-            await interaction.response.send_message(response, ephemeral=True)
-        elif action_lower == "remove":
-            if not streamername:
-                await interaction.response.send_message(
-                    "❌ Streamer name is required for removing.", ephemeral=True
+            elif action_lower == "remove":
+                if not streamername:
+                    logger.warning(
+                        f"Watchlist remove command used without streamer name by {interaction.user.id}"
+                    )
+                    await interaction.response.send_message(
+                        "❌ Streamer name is required for removing.", ephemeral=True
+                    )
+                    return
+                response = unfollowstreamer(streamer=streamername)
+                await interaction.response.send_message(response, ephemeral=True)
+                logger.info(
+                    f"Watchlist remove completed by {interaction.user.id}: {streamername}"
                 )
-                return
-            response = unfollowstreamer(streamer=streamername)
-            await interaction.response.send_message(response, ephemeral=True)
-        elif action_lower == "show":
-            response = viewstreamers()
-            embed = discord.Embed(
-                title="Streamer List [Twitch]",
-                description="Here is the list of streamers you're listening for.",
-            )
-            if response:
-                for streamer in response:
-                    embed.add_field(name=streamer, value="", inline=False)
+            elif action_lower == "show":
+                response = viewstreamers()
+                embed = discord.Embed(
+                    title="Streamer List [Twitch]",
+                    description="Here is the list of streamers you're listening for.",
+                )
+                if response:
+                    for streamer in response:
+                        embed.add_field(name=streamer, value="", inline=False)
+                else:
+                    embed.description = "No streamers in watchlist."
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+                logger.info(
+                    f"Watchlist show completed by {interaction.user.id} - {len(response)} streamer(s)"
+                )
             else:
-                embed.description = "No streamers in watchlist."
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-        else:
-            await interaction.response.send_message(
-                "❌ Invalid action. Use 'add', 'remove', or 'show'.", ephemeral=True
+                logger.warning(
+                    f"Invalid watchlist action '{action}' by {interaction.user.id}"
+                )
+                await interaction.response.send_message(
+                    "❌ Invalid action. Use 'add', 'remove', or 'show'.", ephemeral=True
+                )
+        except Exception as e:
+            logger.error(
+                f"Error in watchlist command for user {interaction.user.id}: {e}",
+                exc_info=True,
             )
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "❌ An error occurred while processing your request.",
+                    ephemeral=True,
+                )
 
     @app_commands.command(
         name="setlivechannel",
@@ -442,11 +493,21 @@ class Twitch(commands.Cog):
     @app_commands.describe(channel="Channel mention or ID")
     async def setlivechannel(self, interaction: discord.Interaction, channel: str):
         """Set the channel for Twitch live notifications."""
-        if interaction.user.id != get_twcord_userid():
+        if not is_authorized_user(interaction.user.id):
+            logger.warning(
+                f"Unauthorized /setlivechannel attempt by {interaction.user} (ID: {interaction.user.id}) "
+                f"in {interaction.guild.name if interaction.guild else 'DM'}"
+            )
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command.", ephemeral=True
             )
             return
+
+        user_type = "dev" if interaction.user.id == get_dev_id() else "twitch user"
+        logger.info(
+            f"Command /setlivechannel used by authorized {user_type} {interaction.user} (ID: {interaction.user.id}) "
+            f"in {interaction.guild.name if interaction.guild else 'DM'} - Channel: {channel}"
+        )
 
         from utils import validate_channel_id  # type: ignore
 
@@ -465,8 +526,21 @@ class Twitch(commands.Cog):
             )
             return
 
-        response = changelivechannel(channel_id=channel_id)
-        await interaction.response.send_message(response, ephemeral=True)
+        try:
+            response = changelivechannel(channel_id=channel_id)
+            await interaction.response.send_message(response, ephemeral=True)
+            logger.info(
+                f"Live channel updated by {interaction.user.id} to channel {channel_id}"
+            )
+        except Exception as e:
+            logger.error(
+                f"Error in setlivechannel command for user {interaction.user.id}: {e}",
+                exc_info=True,
+            )
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "❌ An error occurred while setting the channel.", ephemeral=True
+                )
 
     @app_commands.command(
         name="setlivemessage",
@@ -480,20 +554,55 @@ class Twitch(commands.Cog):
         self, interaction: discord.Interaction, message: str, mentioned: str
     ) -> None:
         """Set the live notification message."""
-        if interaction.user.id != get_twcord_userid():
+        if not is_authorized_user(interaction.user.id):
+            logger.warning(
+                f"Unauthorized /setlivemessage attempt by {interaction.user} (ID: {interaction.user.id}) "
+                f"in {interaction.guild.name if interaction.guild else 'DM'}"
+            )
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command.", ephemeral=True
             )
             return
 
+        user_type = "dev" if interaction.user.id == get_dev_id() else "twitch user"
+        logger.info(
+            f"Command /setlivemessage used by authorized {user_type} {interaction.user} (ID: {interaction.user.id}) "
+            f"in {interaction.guild.name if interaction.guild else 'DM'}"
+        )
+
         if not message or not message.strip():
+            logger.warning(
+                f"Empty message attempt in setlivemessage by {interaction.user.id}"
+            )
             await interaction.response.send_message(
                 "❌ Message cannot be empty.", ephemeral=True
             )
             return
 
-        response = changemessage(newmessage=message, mentions=mentioned)
-        await interaction.response.send_message(response, ephemeral=True)
+        try:
+            response = changemessage(newmessage=message, mentions=mentioned)
+            await interaction.response.send_message(response, ephemeral=True)
+            logger.info(f"Live message updated by {interaction.user.id}")
+        except Exception as e:
+            logger.error(
+                f"Error in setlivemessage command for user {interaction.user.id}: {e}",
+                exc_info=True,
+            )
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "❌ An error occurred while setting the message.", ephemeral=True
+                )
+
+    @commands.Cog.listener()
+    async def on_app_command_error(
+        self, interaction: discord.Interaction, error: app_commands.AppCommandError
+    ):
+        """Handle errors for app commands."""
+        logger.error(
+            f"App command error in {interaction.command.name if interaction.command else 'unknown'} "
+            f"by {interaction.user} (ID: {interaction.user.id}): {error}",
+            exc_info=error,
+        )
 
 
 def followstreamer(streamer: str) -> str:

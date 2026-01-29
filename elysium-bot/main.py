@@ -3,17 +3,23 @@ import logging
 import os
 from typing import Final
 
+# Configure logging FIRST before any other imports that might create loggers
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    force=True,  # Force reconfiguration even if logging was already configured
+)
+
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
 from config import get_bot_config
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# Get loggers for all modules
 logger = logging.getLogger(__name__)
+discord_logger = logging.getLogger("discord")
+discord_logger.setLevel(logging.INFO)  # Set discord.py logging level
 
 # Load .env file
 load_dotenv()

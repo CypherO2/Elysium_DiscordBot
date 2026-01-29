@@ -53,8 +53,15 @@ class MusicBot(commands.Cog):
     @commands.command()
     async def play(self, ctx: commands.Context, *, search: str):
         """Play a song from YouTube."""
+        logger.info(
+            f"Command !play used by {ctx.author} (ID: {ctx.author.id}) "
+            f"in {ctx.guild.name if ctx.guild else 'DM'} - Search: {search[:50]}"
+        )
         # Check if user is in a voice channel
         if not ctx.author.voice:
+            logger.warning(
+                f"Play command used by {ctx.author.id} but user not in voice channel"
+            )
             await ctx.send("❌ You are not in a voice channel!")
             return
 
@@ -106,7 +113,9 @@ class MusicBot(commands.Cog):
                 # Add to queue
                 self.queue.append((url, title))
                 await ctx.send(f"✅ Added to queue: **{title}**")
-                logger.info(f"Added {title} to queue by {ctx.author}")
+                logger.info(
+                    f"Song '{title}' added to queue by {ctx.author.id} (Queue size: {len(self.queue)})"
+                )
 
             except yt_dlp.DownloadError as e:
                 logger.error(f"yt-dlp error: {e}")
@@ -184,20 +193,34 @@ class MusicBot(commands.Cog):
     @commands.command()
     async def skip(self, ctx: commands.Context):
         """Skip the current song."""
+        logger.info(
+            f"Command !skip used by {ctx.author} (ID: {ctx.author.id}) "
+            f"in {ctx.guild.name if ctx.guild else 'DM'}"
+        )
         if not ctx.voice_client:
+            logger.warning(
+                f"Skip command used by {ctx.author.id} but bot not in voice channel"
+            )
             await ctx.send("❌ I'm not connected to a voice channel!")
             return
 
         if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
             ctx.voice_client.stop()
             await ctx.send("⏭️ Song skipped!")
-            logger.info(f"Song skipped by {ctx.author}")
+            logger.info(f"Song skipped by {ctx.author.id}")
         else:
+            logger.warning(
+                f"Skip command used by {ctx.author.id} but nothing is playing"
+            )
             await ctx.send("❌ Nothing is currently playing!")
 
     @commands.command()
     async def queue(self, ctx: commands.Context):
         """Show the current queue."""
+        logger.info(
+            f"Command !queue used by {ctx.author} (ID: {ctx.author.id}) "
+            f"in {ctx.guild.name if ctx.guild else 'DM'}"
+        )
         if not self.queue:
             await ctx.send("📭 Queue is empty!")
             return
@@ -209,39 +232,61 @@ class MusicBot(commands.Cog):
             title="Current Queue", description=queue_list, color=0x5A0C8A
         )
         await ctx.send(embed=embed)
+        logger.debug(f"Queue displayed to {ctx.author.id} - {len(self.queue)} item(s)")
 
     @commands.command()
     async def stop(self, ctx: commands.Context):
         """Stop playing and disconnect from voice channel."""
+        logger.info(
+            f"Command !stop used by {ctx.author} (ID: {ctx.author.id}) "
+            f"in {ctx.guild.name if ctx.guild else 'DM'}"
+        )
         if ctx.voice_client:
             self.queue.clear()
             ctx.voice_client.stop()
             await ctx.voice_client.disconnect()
             await ctx.send("🛑 Stopped playing and disconnected!")
-            logger.info(f"Music stopped by {ctx.author}")
+            logger.info(f"Music stopped and disconnected by {ctx.author.id}")
             # Cancel timers
             self.cancel_timers()
         else:
+            logger.warning(
+                f"Stop command used by {ctx.author.id} but bot not in voice channel"
+            )
             await ctx.send("❌ I'm not connected to a voice channel!")
 
     @commands.command()
     async def pause(self, ctx: commands.Context):
         """Pause the current song."""
+        logger.info(
+            f"Command !pause used by {ctx.author} (ID: {ctx.author.id}) "
+            f"in {ctx.guild.name if ctx.guild else 'DM'}"
+        )
         if ctx.voice_client and ctx.voice_client.is_playing():
             ctx.voice_client.pause()
             await ctx.send("⏸️ Paused!")
-            logger.info(f"Music paused by {ctx.author}")
+            logger.info(f"Music paused by {ctx.author.id}")
         else:
+            logger.warning(
+                f"Pause command used by {ctx.author.id} but nothing is playing"
+            )
             await ctx.send("❌ Nothing is currently playing!")
 
     @commands.command()
     async def resume(self, ctx: commands.Context):
         """Resume the paused song."""
+        logger.info(
+            f"Command !resume used by {ctx.author} (ID: {ctx.author.id}) "
+            f"in {ctx.guild.name if ctx.guild else 'DM'}"
+        )
         if ctx.voice_client and ctx.voice_client.is_paused():
             ctx.voice_client.resume()
             await ctx.send("▶️ Resumed!")
-            logger.info(f"Music resumed by {ctx.author}")
+            logger.info(f"Music resumed by {ctx.author.id}")
         else:
+            logger.warning(
+                f"Resume command used by {ctx.author.id} but audio is not paused"
+            )
             await ctx.send("❌ Audio is not paused!")
 
     def cancel_timers(self):
@@ -306,6 +351,17 @@ class MusicBot(commands.Cog):
         self.empty_channel_timer = asyncio.create_task(asyncio.sleep(30))
         self.empty_channel_timer.add_done_callback(
             lambda _: asyncio.create_task(empty_channel_callback())
+        )
+
+    @commands.Cog.listener()
+    async def on_command_error(
+        self, ctx: commands.Context, error: commands.CommandError
+    ):
+        """Handle errors for text commands."""
+        logger.error(
+            f"Command error in {ctx.command.name if ctx.command else 'unknown'} "
+            f"by {ctx.author} (ID: {ctx.author.id}) in {ctx.guild.name if ctx.guild else 'DM'}: {error}",
+            exc_info=error,
         )
 
 

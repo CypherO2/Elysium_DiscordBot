@@ -107,6 +107,10 @@ class Moderation(commands.Cog):
     @app_commands.describe(issue="What is the issue?")
     async def alert(self, interaction: discord.Interaction, issue: str) -> None:
         """Report an issue to moderators."""
+        logger.info(
+            f"Command /alert used by {interaction.user} (ID: {interaction.user.id}) "
+            f"in {interaction.guild.name if interaction.guild else 'DM'}: {issue[:100]}"
+        )
         try:
             config = get_moderation_config()
             mod_channel_id = config.get("mod_channel")
@@ -148,12 +152,29 @@ class Moderation(commands.Cog):
                     "Your report has been sent", ephemeral=True
                 ),
             )
+            logger.info(
+                f"Alert successfully sent by {interaction.user.id} to mod channel"
+            )
         except Exception as e:
-            logger.error(f"Error in alert command: {e}", exc_info=True)
+            logger.error(
+                f"Error in alert command for user {interaction.user.id}: {e}",
+                exc_info=True,
+            )
             if not interaction.response.is_done():
                 await interaction.response.send_message(
                     "An error occurred while sending your report.", ephemeral=True
                 )
+
+    @commands.Cog.listener()
+    async def on_app_command_error(
+        self, interaction: discord.Interaction, error: app_commands.AppCommandError
+    ):
+        """Handle errors for app commands."""
+        logger.error(
+            f"App command error in {interaction.command.name if interaction.command else 'unknown'} "
+            f"by {interaction.user} (ID: {interaction.user.id}): {error}",
+            exc_info=error,
+        )
 
 
 async def setup(bot: commands.Bot):

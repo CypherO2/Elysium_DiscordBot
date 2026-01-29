@@ -44,6 +44,10 @@ class Utility(commands.Cog):
     )
     async def runtime(self, interaction: discord.Interaction):
         """Show bot runtime information."""
+        logger.info(
+            f"Command /runtime used by {interaction.user} (ID: {interaction.user.id}) "
+            f"in {interaction.guild.name if interaction.guild else 'DM'}"
+        )
         try:
             now = datetime.now(timezone.utc)
             time_elapsed = now - start_time
@@ -51,8 +55,14 @@ class Utility(commands.Cog):
                 f"As of {now.strftime('%d/%m/%Y %H:%M:%S')} UTC,\nTime Elapsed: {time_elapsed}",
                 ephemeral=True,
             )
+            logger.debug(
+                f"Runtime command completed successfully for {interaction.user.id}"
+            )
         except Exception as e:
-            logger.error(f"Error in runtime command: {e}", exc_info=True)
+            logger.error(
+                f"Error in runtime command for user {interaction.user.id}: {e}",
+                exc_info=True,
+            )
             if not interaction.response.is_done():
                 await interaction.response.send_message(
                     "An error occurred while getting runtime information.",
@@ -68,10 +78,19 @@ class Utility(commands.Cog):
     ) -> None:
         """Shutdown the bot (dev only)."""
         if interaction.user.id != dev_id:
+            logger.warning(
+                f"Unauthorized shutdown attempt by {interaction.user} (ID: {interaction.user.id}) "
+                f"in {interaction.guild.name if interaction.guild else 'DM'}"
+            )
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command.", ephemeral=True
             )
             return
+
+        logger.info(
+            f"Command /shutdown used by authorized user {interaction.user} (ID: {interaction.user.id}) "
+            f"in {interaction.guild.name if interaction.guild else 'DM'} - Reason: {reason or 'No reason provided'}"
+        )
 
         try:
             now = datetime.now(timezone.utc)
@@ -121,6 +140,10 @@ class Utility(commands.Cog):
     )
     async def help_command(self, interaction: discord.Interaction):
         """Display help information."""
+        logger.info(
+            f"Command /help used by {interaction.user} (ID: {interaction.user.id}) "
+            f"in {interaction.guild.name if interaction.guild else 'DM'}"
+        )
         try:
             embed = discord.Embed(
                 title="**𝓔𝓵𝔂𝓼𝓲𝓾𝓶 - Help Centre**",
@@ -161,7 +184,12 @@ class Utility(commands.Cog):
     @app_commands.describe(suggestion="What is your suggestion?")
     async def suggest_command(self, interaction: discord.Interaction, suggestion: str):
         """Submit a suggestion for the bot."""
+        logger.info(
+            f"Command /suggestion used by {interaction.user} (ID: {interaction.user.id}) "
+            f"in {interaction.guild.name if interaction.guild else 'DM'}"
+        )
         if not suggestion or not suggestion.strip():
+            logger.warning(f"Empty suggestion attempt by {interaction.user.id}")
             await interaction.response.send_message(
                 "❌ Suggestion cannot be empty.", ephemeral=True
             )
@@ -197,13 +225,30 @@ class Utility(commands.Cog):
                 f"✅ Your suggestion has been registered!\n`Your Suggestion: {suggestion}`",
                 ephemeral=True,
             )
+            logger.info(
+                f"Suggestion successfully submitted by {interaction.user.id}: {suggestion[:50]}..."
+            )
         except Exception as e:
-            logger.error(f"Error in suggestion command: {e}", exc_info=True)
+            logger.error(
+                f"Error in suggestion command for user {interaction.user.id}: {e}",
+                exc_info=True,
+            )
             if not interaction.response.is_done():
                 await interaction.response.send_message(
                     "An error occurred while submitting your suggestion.",
                     ephemeral=True,
                 )
+
+    @commands.Cog.listener()
+    async def on_app_command_error(
+        self, interaction: discord.Interaction, error: app_commands.AppCommandError
+    ):
+        """Handle errors for app commands."""
+        logger.error(
+            f"App command error in {interaction.command.name if interaction.command else 'unknown'} "
+            f"by {interaction.user} (ID: {interaction.user.id}): {error}",
+            exc_info=error,
+        )
 
 
 async def setup(bot: commands.Bot):
