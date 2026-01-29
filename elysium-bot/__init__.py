@@ -1,0 +1,1 @@
+"""Elysium Discord Bot package."""

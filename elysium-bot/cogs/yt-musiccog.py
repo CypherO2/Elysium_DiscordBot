@@ -1,12 +1,24 @@
+import logging
+import os
+import asyncio
+from pathlib import Path
+from typing import Optional
+
 import discord
 from discord.ext import commands
 import yt_dlp
-import asyncio
-import os
 
-FFMPEG_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "bin", "ffmpeg.exe")
-# For Linux/Mac use:
-# FFMPEG_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "bin", "ffmpeg")
+logger = logging.getLogger(__name__)
+
+# Determine FFmpeg path based on OS
+if os.name == "nt":  # Windows
+    FFMPEG_PATH = Path(__file__).parent.parent.parent / "bin" / "ffmpeg.exe"
+else:  # Linux/Mac
+    FFMPEG_PATH = Path(__file__).parent.parent.parent / "bin" / "ffmpeg"
+
+# Fallback to system ffmpeg if not found in bin directory
+if not FFMPEG_PATH.exists():
+    FFMPEG_PATH = "ffmpeg"  # Use system ffmpeg
 
 FFMPEG_OPTIONS = {
     "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5",
@@ -28,18 +40,23 @@ YDL_OPTIONS = {
 
 
 class MusicBot(commands.Cog):
-    def __init__(self, client):
-        self.client = client
-        self.queue = []
-        self.current_ctx = None
-        self.disconnect_timer = None
-        self.empty_channel_timer = None
+    """Music bot cog for playing YouTube audio in voice channels."""
+
+    def __init__(self, bot: commands.Bot):
+        """Initialize the music bot."""
+        self.bot = bot
+        self.queue: list[tuple[str, str]] = []  # List of (url, title) tuples
+        self.current_ctx: Optional[commands.Context] = None
+        self.disconnect_timer: Optional[asyncio.Task] = None
+        self.empty_channel_timer: Optional[asyncio.Task] = None
 
     @commands.command()
-    async def play(self, ctx, *, search):
+    async def play(self, ctx: commands.Context, *, search: str):
+        """Play a song from YouTube."""
         # Check if user is in a voice channel
         if not ctx.author.voice:
-            return await ctx.send("You are not in a voice channel!")
+            await ctx.send("❌ You are not in a voice channel!")
+            return
 
         voice_channel = ctx.author.voice.channel
 
@@ -47,32 +64,56 @@ class MusicBot(commands.Cog):
         if not ctx.voice_client:
             try:
                 await voice_channel.connect()
-            except discord.ClientException:
-                return await ctx.send("Failed to connect to voice channel!")
+                logger.info(f"Connected to voice channel: {voice_channel.name}")
+            except discord.ClientException as e:
+                logger.error(f"Failed to connect to voice channel: {e}")
+                await ctx.send("❌ Failed to connect to voice channel!")
+                return
+            except Exception as e:
+                logger.error(f"Unexpected error connecting to voice channel: {e}")
+                await ctx.send(
+                    "❌ An error occurred while connecting to the voice channel!"
+                )
+                return
 
         # Check if bot is in the same voice channel as user
         elif ctx.voice_client.channel != voice_channel:
-            return await ctx.send("You must be in the same voice channel as the bot!")
+            await ctx.send("❌ You must be in the same voice channel as the bot!")
+            return
 
         async with ctx.typing():
             try:
-                with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
-                    # Search for the song
-                    info = ydl.extract_info(f"ytsearch:{search}", download=False)
-                    if "entries" in info and len(info["entries"]) > 0:
-                        info = info["entries"][0]
-                    else:
-                        return await ctx.send("No results found!")
+                # Run yt-dlp in a thread to avoid blocking
+                def extract_info():
+                    with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
+                        return ydl.extract_info(f"ytsearch:{search}", download=False)
 
-                    url = info["url"]
-                    title = info["title"]
+                info = await asyncio.to_thread(extract_info)
 
-                    # Add to queue
-                    self.queue.append((url, title))
-                    await ctx.send(f"Added to queue: **{title}**")
+                if "entries" in info and len(info["entries"]) > 0:
+                    info = info["entries"][0]
+                else:
+                    await ctx.send("❌ No results found!")
+                    return
 
+                url = info.get("url")
+                title = info.get("title", "Unknown Title")
+
+                if not url:
+                    await ctx.send("❌ Could not get audio URL!")
+                    return
+
+                # Add to queue
+                self.queue.append((url, title))
+                await ctx.send(f"✅ Added to queue: **{title}**")
+                logger.info(f"Added {title} to queue by {ctx.author}")
+
+            except yt_dlp.DownloadError as e:
+                logger.error(f"yt-dlp error: {e}")
+                await ctx.send(f"❌ Error searching for video: {str(e)}")
             except Exception as e:
-                return await ctx.send(f"An error occurred while searching: {str(e)}")
+                logger.error(f"Error in play command: {e}", exc_info=True)
+                await ctx.send(f"❌ An error occurred while searching: {str(e)}")
 
         # Set current context for callbacks
         self.current_ctx = ctx
@@ -90,10 +131,15 @@ class MusicBot(commands.Cog):
         self.start_empty_channel_timer(ctx)
 
     async def play_next(self):
+        """Play the next song in the queue."""
         if not self.current_ctx:
             return
 
         ctx = self.current_ctx
+
+        if not ctx.voice_client:
+            logger.warning("Voice client not available for play_next")
+            return
 
         if self.queue:
             url, title = self.queue.pop(0)
@@ -104,24 +150,30 @@ class MusicBot(commands.Cog):
                 # Play the audio with after callback
                 ctx.voice_client.play(
                     source,
-                    after=lambda error: self.client.loop.create_task(
-                        self.after_playing(error)
-                    ),
+                    after=lambda error: asyncio.create_task(self.after_playing(error)),
                 )
-                await ctx.send(f"Now Playing: **{title}**")
+                await ctx.send(f"🎵 Now Playing: **{title}**")
+                logger.info(f"Now playing: {title}")
 
+            except discord.ClientException as e:
+                logger.error(f"Discord client error playing audio: {e}")
+                await ctx.send(f"❌ Error playing audio: {str(e)}")
+                # Try to play next song if there was an error
+                await self.play_next()
             except Exception as e:
-                await ctx.send(f"Error playing audio: {str(e)}")
+                logger.error(f"Error playing audio: {e}", exc_info=True)
+                await ctx.send(f"❌ Error playing audio: {str(e)}")
                 # Try to play next song if there was an error
                 await self.play_next()
         else:
-            await ctx.send("Queue is empty!")
+            await ctx.send("📭 Queue is empty!")
             # Start disconnect timer when queue is empty and nothing is playing
             self.start_disconnect_timer(ctx)
 
-    async def after_playing(self, error):
+    async def after_playing(self, error: Optional[Exception]):
+        """Callback after a song finishes playing."""
         if error:
-            print(f"Player error: {error}")
+            logger.error(f"Player error: {error}")
         # Cancel disconnect timer since we're about to play next song
         if self.disconnect_timer:
             self.disconnect_timer.cancel()
@@ -130,53 +182,67 @@ class MusicBot(commands.Cog):
         await self.play_next()
 
     @commands.command()
-    async def skip(self, ctx):
+    async def skip(self, ctx: commands.Context):
+        """Skip the current song."""
         if not ctx.voice_client:
-            return await ctx.send("I'm not connected to a voice channel!")
+            await ctx.send("❌ I'm not connected to a voice channel!")
+            return
 
         if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
             ctx.voice_client.stop()
-            await ctx.send("Song skipped!")
+            await ctx.send("⏭️ Song skipped!")
+            logger.info(f"Song skipped by {ctx.author}")
         else:
-            await ctx.send("Nothing is currently playing!")
+            await ctx.send("❌ Nothing is currently playing!")
 
     @commands.command()
-    async def queue(self, ctx):
+    async def queue(self, ctx: commands.Context):
+        """Show the current queue."""
         if not self.queue:
-            return await ctx.send("Queue is empty!")
+            await ctx.send("📭 Queue is empty!")
+            return
 
         queue_list = "\n".join(
             [f"{i + 1}. {title}" for i, (url, title) in enumerate(self.queue)]
         )
-        await ctx.send(f"**Current Queue:**\n{queue_list}")
+        embed = discord.Embed(
+            title="Current Queue", description=queue_list, color=0x5A0C8A
+        )
+        await ctx.send(embed=embed)
 
     @commands.command()
-    async def stop(self, ctx):
+    async def stop(self, ctx: commands.Context):
+        """Stop playing and disconnect from voice channel."""
         if ctx.voice_client:
             self.queue.clear()
             ctx.voice_client.stop()
             await ctx.voice_client.disconnect()
-            await ctx.send("Stopped playing and disconnected!")
+            await ctx.send("🛑 Stopped playing and disconnected!")
+            logger.info(f"Music stopped by {ctx.author}")
             # Cancel timers
             self.cancel_timers()
         else:
-            await ctx.send("I'm not connected to a voice channel!")
+            await ctx.send("❌ I'm not connected to a voice channel!")
 
     @commands.command()
-    async def pause(self, ctx):
+    async def pause(self, ctx: commands.Context):
+        """Pause the current song."""
         if ctx.voice_client and ctx.voice_client.is_playing():
             ctx.voice_client.pause()
-            await ctx.send("Paused!")
+            await ctx.send("⏸️ Paused!")
+            logger.info(f"Music paused by {ctx.author}")
         else:
-            await ctx.send("Nothing is currently playing!")
+            await ctx.send("❌ Nothing is currently playing!")
 
     @commands.command()
-    async def resume(self, ctx):
+    async def resume(self, ctx: commands.Context):
+        """Resume the paused song."""
         if ctx.voice_client and ctx.voice_client.is_paused():
             ctx.voice_client.resume()
-            await ctx.send("Resumed!")
+            await ctx.send("▶️ Resumed!")
+            logger.info(f"Music resumed by {ctx.author}")
         else:
-            await ctx.send("Audio is not paused!")
+            await ctx.send("❌ Audio is not paused!")
 
     def cancel_timers(self):
         """Cancel all active timers"""
@@ -187,8 +253,8 @@ class MusicBot(commands.Cog):
             self.empty_channel_timer.cancel()
             self.empty_channel_timer = None
 
-    def start_disconnect_timer(self, ctx):
-        """Start timer to disconnect after 30 seconds of inactivity"""
+    def start_disconnect_timer(self, ctx: commands.Context):
+        """Start timer to disconnect after 30 seconds of inactivity."""
         if self.disconnect_timer:
             self.disconnect_timer.cancel()
 
@@ -197,21 +263,23 @@ class MusicBot(commands.Cog):
                 if (
                     ctx.voice_client
                     and not ctx.voice_client.is_playing()
+                    and not ctx.voice_client.is_paused()
                     and not self.queue
                 ):
-                    await ctx.send("Disconnecting due to inactivity...")
+                    await ctx.send("🔌 Disconnecting due to inactivity...")
                     await ctx.voice_client.disconnect()
                     self.cancel_timers()
+                    logger.info("Disconnected from voice channel due to inactivity")
             except Exception as e:
-                print(f"Error in disconnect callback: {e}")
+                logger.error(f"Error in disconnect callback: {e}", exc_info=True)
 
         self.disconnect_timer = asyncio.create_task(asyncio.sleep(30))
         self.disconnect_timer.add_done_callback(
-            lambda _: self.client.loop.create_task(disconnect_callback())
+            lambda _: asyncio.create_task(disconnect_callback())
         )
 
-    def start_empty_channel_timer(self, ctx):
-        """Start timer to disconnect if voice channel is empty"""
+    def start_empty_channel_timer(self, ctx: commands.Context):
+        """Start timer to disconnect if voice channel is empty."""
         if self.empty_channel_timer:
             self.empty_channel_timer.cancel()
 
@@ -224,21 +292,23 @@ class MusicBot(commands.Cog):
                     ]
                     if len(human_members) == 0:
                         await ctx.send(
-                            "Disconnecting because no one is in the voice channel..."
+                            "🔌 Disconnecting because no one is in the voice channel..."
                         )
                         await ctx.voice_client.disconnect()
                         self.cancel_timers()
+                        logger.info("Disconnected from voice channel - no members")
                     else:
                         # Restart timer if there are still people
                         self.start_empty_channel_timer(ctx)
             except Exception as e:
-                print(f"Error in empty channel callback: {e}")
+                logger.error(f"Error in empty channel callback: {e}", exc_info=True)
 
         self.empty_channel_timer = asyncio.create_task(asyncio.sleep(30))
         self.empty_channel_timer.add_done_callback(
-            lambda _: self.client.loop.create_task(empty_channel_callback())
+            lambda _: asyncio.create_task(empty_channel_callback())
         )
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot):
+    """Setup function for the music bot cog."""
     await bot.add_cog(MusicBot(bot))
