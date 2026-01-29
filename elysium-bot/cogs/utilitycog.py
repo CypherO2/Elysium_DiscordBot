@@ -12,6 +12,7 @@ start_time = datetime.now()
 import json
 import os
 
+
 def load_bot_config():
     """Load bot configuration from config.json."""
     config_path = os.path.join(os.path.dirname(__file__), "..", "config.json")
@@ -25,7 +26,7 @@ def load_bot_config():
             os.path.join(os.path.dirname(__file__), "config.json"),
             "./config.json",
             "../config.json",
-            "config.json"
+            "config.json",
         ]
         for alt_path in alternatives:
             try:
@@ -38,11 +39,18 @@ def load_bot_config():
     except json.JSONDecodeError:
         return {}
 
+
 bot_config = load_bot_config()
-dev_id = bot_config.get("dev_id", 876876129368150018)  # If you are hosting this bot, change this to your Discord UserID
+dev_id = bot_config.get(
+    "dev_id", 876876129368150018
+)  # If you are hosting this bot, change this to your Discord UserID
 bot_notifications = bot_config.get("bot_notifications", 1234227629352288275)
-public_log = bot_config.get("public_log", 1234227629557547029)  # Change to your public bot log channel ID
-private_log = bot_config.get("private_log", 1234227628924207283)  # Change to your private bot log channel ID
+public_log = bot_config.get(
+    "public_log", 1234227629557547029
+)  # Change to your public bot log channel ID
+private_log = bot_config.get(
+    "private_log", 1234227628924207283
+)  # Change to your private bot log channel ID
 
 
 class utility(commands.Cog):
@@ -108,11 +116,11 @@ class utility(commands.Cog):
             value=f"""
             **/help** - Displays the help menu - contains a list of commands.
             **/runtime** - Shows how long the bot has been online.
-            **/watchlist {'{action} {streamer_name}'}** - Allows for the editing and viewing of the streamer list.
-            **/setlivemessage {'{message} {role}'}** - Allows for the creation of custom messages for stream notifications.
-            **/setlivechannel {'{channel}'}** - Allows for the changing of the channel the bot sends notifications in.
-            **/shutdown {'{reason}'}** - This command stops the bot (Authorised users only).
-            **/suggestion {'{suggestion}'}** - This command allows for the user to send a suggestion for update to the bot.
+            **/watchlist {"{action} {streamer_name}"}** - Allows for the editing and viewing of the streamer list.
+            **/setlivemessage {"{message} {role}"}** - Allows for the creation of custom messages for stream notifications.
+            **/setlivechannel {"{channel}"}** - Allows for the changing of the channel the bot sends notifications in.
+            **/shutdown {"{reason}"}** - This command stops the bot (Authorised users only).
+            **/suggestion {"{suggestion}"}** - This command allows for the user to send a suggestion for update to the bot.
             """,
             inline=False,
         )

@@ -1,12 +1,8 @@
 import asyncio
 import discord
 import os
-import requests
-import functions as F
-from typing import Final, Optional
-from datetime import datetime
+from typing import Final
 from discord.ext import commands
-from discord import app_commands
 from dotenv import load_dotenv
 
 # Load .env file
@@ -14,6 +10,7 @@ load_dotenv()
 
 # Load config for channel IDs
 import json
+
 
 def load_bot_config():
     config_path = os.path.join(os.path.dirname(__file__), "config.json")
@@ -28,13 +25,18 @@ def load_bot_config():
         print(f"⚠️ Error parsing config file: {e}")
         return {}
 
+
 bot_config = load_bot_config()
-public_log = bot_config.get("public_log", 1234227629557547029)  # Change to your public bot log channel ID
-private_log = bot_config.get("private_log", 1234227628924207283)  # Change to your private bot log channel ID
+public_log = bot_config.get(
+    "public_log", 1234227629557547029
+)  # Change to your public bot log channel ID
+private_log = bot_config.get(
+    "private_log", 1234227628924207283
+)  # Change to your private bot log channel ID
 
 
 # Load Client token from environment variables
-TOKEN: Final[str] = os.getenv("ELYSIUM_TOKEN")
+TOKEN: Final[str] = os.getenv("ELYSIUM_TOKEN") or ""
 
 
 # Declare intents
@@ -57,7 +59,6 @@ async def load():
 
 @Client.event
 async def on_ready():
-
     channel1 = Client.get_channel(public_log)
     channel2 = Client.get_channel(private_log)
 

@@ -1,14 +1,13 @@
-import discord
-import json
 import datetime
-import typing
 import asyncio
 import re
-from typing import Optional
-from discord.ext import commands, tasks
+import discord
+from discord.ext import commands
 from discord import app_commands
-from datetime import datetime, date, time, timezone, timedelta
 from twitchcog import load_config
+
+allowed_mentions = discord.AllowedMentions(roles=True)
+
 
 class moderation(commands.Cog):
     def __init__(self, bot):
@@ -24,7 +23,7 @@ class moderation(commands.Cog):
             for text in block_list:
                 # Use word boundaries to prevent false positives (e.g., "class" matching "ass")
                 # Check if the word appears as a whole word or at word boundaries
-                pattern = r'\b' + re.escape(text.lower()) + r'\b'
+                pattern = r"\b" + re.escape(text.lower()) + r"\b"
                 if re.search(pattern, msg_lower):
                     embed = discord.Embed(
                         title="**ALERT!**",
@@ -54,7 +53,11 @@ class moderation(commands.Cog):
     async def Alert(self, interaction: discord.Interaction, issue: str) -> None:
         config = load_config()
         channel = self.bot.get_channel(config["moderation"]["mod_channel"])
-        channel2 = interaction.channel.mention if not isinstance(interaction.channel, discord.DMChannel) else interaction.channel.recipient.mention
+        channel2 = (
+            interaction.channel.mention  # type: ignore
+            if not isinstance(interaction.channel, discord.DMChannel)
+            else interaction.channel.recipient.mention  # type: ignore
+        )
         embed = discord.Embed(
             title="**ALERT!**",
             description=f"In: {channel2}\nReason: {issue}\n<@&{config['moderation']['mod_role']}>",
@@ -63,8 +66,11 @@ class moderation(commands.Cog):
         )
         await asyncio.gather(
             channel.send(embed=embed),
-            interaction.response.send_message("Your report has been sent", ephemeral=True),
-    )
+            interaction.response.send_message(
+                "Your report has been sent", ephemeral=True
+            ),
+        )
+
 
 async def setup(bot):
     await bot.add_cog(moderation(bot))

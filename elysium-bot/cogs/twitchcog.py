@@ -1,6 +1,6 @@
 import discord
 import json
-import requests
+from requests import post, get
 import os
 from typing import Optional
 from discord.ext import commands, tasks
@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 
 
 allowed_mentions = discord.AllowedMentions(roles=True)
+
 
 def get_twcord_userid():
     """Get the Twitch command user ID from config."""
@@ -34,21 +35,21 @@ def load_config():
     except FileNotFoundError:
         print(f"Config file not found at: {config_path}", flush=True)
         # Try alternative paths
-        alternatives = [
-            "./config.json",
-            "../config.json",
-            "config.json"
-        ]
+        alternatives = ["./config.json", "../config.json", "config.json"]
         for alt_path in alternatives:
             try:
                 abs_alt_path = os.path.abspath(alt_path)
                 print(f"Trying alternative path: {abs_alt_path}", flush=True)
                 with open(alt_path) as config_file:
-                    print(f"Successfully loaded config from: {abs_alt_path}", flush=True)
+                    print(
+                        f"Successfully loaded config from: {abs_alt_path}", flush=True
+                    )
                     return json.load(config_file)
             except FileNotFoundError:
                 continue
-        raise FileNotFoundError("Could not find config.json in any of the expected locations")
+        raise FileNotFoundError(
+            "Could not find config.json in any of the expected locations"
+        )
 
 
 def save_config(config):
@@ -66,7 +67,7 @@ def get_app_access_token():
         "grant_type": "client_credentials",
     }
 
-    response = requests.post("https://id.twitch.tv/oauth2/token", params=params)
+    response = post("https://id.twitch.tv/oauth2/token", params=params)
     access_token = response.json()["access_token"]
     print(access_token, flush=True)
     return access_token
@@ -89,9 +90,7 @@ def get_users(login_names):
         "Client-Id": config["twitch"]["client_id"],
     }
 
-    response = requests.get(
-        "https://api.twitch.tv/helix/users", params=params, headers=headers
-    )
+    response = get("https://api.twitch.tv/helix/users", params=params, headers=headers)
     return {entry["login"]: entry["id"] for entry in response.json().get("data", [])}
 
 
@@ -106,7 +105,7 @@ def get_streams(users):
         "Client-Id": config["twitch"]["client_id"],
     }
 
-    response = requests.get(
+    response = get(
         "https://api.twitch.tv/helix/streams", params=params, headers=headers
     )
 
@@ -123,7 +122,9 @@ class twitch(commands.Cog):
         self.bot = bot
         self.online_users = {}  # Move to instance variable
         print(f"Current working directory: {os.getcwd()}", flush=True)
-        print(f"Script location: {os.path.dirname(os.path.abspath(__file__))}", flush=True)
+        print(
+            f"Script location: {os.path.dirname(os.path.abspath(__file__))}", flush=True
+        )
         print(f"Config path will be: {get_config_path()}", flush=True)
         print("Twitch cog initialized (but loops not started yet)", flush=True)
 
@@ -167,7 +168,9 @@ class twitch(commands.Cog):
                 print(f"{user_name} is offline.", flush=True)
             else:
                 stream_data = streams[user_name]
-                print(f"{user_name} is online. Stream details: {stream_data}", flush=True)
+                print(
+                    f"{user_name} is online. Stream details: {stream_data}", flush=True
+                )
 
                 # Convert the started_at string to a datetime object
                 started_at = datetime.strptime(
@@ -175,13 +178,23 @@ class twitch(commands.Cog):
                 )
 
                 # Print for debugging
-                print(f"Checking if {started_at} > {self.online_users[user_name]}", flush=True)
+                print(
+                    f"Checking if {started_at} > {self.online_users[user_name]}",
+                    flush=True,
+                )
 
                 # Ensure we are comparing datetime objects
-                if self.online_users[user_name] is None or started_at > self.online_users[user_name]:
-                    print(f"Adding notification for {user_name}", flush=True)  # Debug line
+                if (
+                    self.online_users[user_name] is None
+                    or started_at > self.online_users[user_name]
+                ):
+                    print(
+                        f"Adding notification for {user_name}", flush=True
+                    )  # Debug line
                     notifications.append(stream_data)
-                    self.online_users[user_name] = started_at  # Update with the new started_at
+                    self.online_users[user_name] = (
+                        started_at  # Update with the new started_at
+                    )
 
         print(f"Notifications: {notifications}", flush=True)  # Debug line
         return notifications
@@ -192,7 +205,7 @@ class twitch(commands.Cog):
             print(f"Running Twitch access token check at {datetime.now()}", flush=True)
             current_time = datetime.now().timestamp()
             config = load_config()
-            
+
             if int(current_time) >= config["twitch"]["expire_date"]:
                 access_token = get_app_access_token()
                 config["twitch"]["access_token"] = access_token
@@ -209,19 +222,19 @@ class twitch(commands.Cog):
         try:
             config = load_config()
             print("Running streamer check loop", flush=True)
-            
+
             channel_id = int(config["twitch"]["channel_id"])
             channel = self.bot.get_channel(channel_id)
             print(f"🔍 Checking channel_id: {channel_id} (type: {type(channel_id)})")
             print(f"📢 Found channel: {channel}")
-            
+
             if not channel:
                 print("Channel not found, skipping notification check", flush=True)
                 return
 
             live_message = config["twitch"]["live_msg"]
             notifications = self.get_notifications()
-            
+
             for notification in notifications:
                 game = "{}".format(notification["game_name"])
                 if game == "":
@@ -234,7 +247,9 @@ class twitch(commands.Cog):
                         color=0x6034B2,
                     )
                     embed.set_author(
-                        name="{} is now live on Twitch!".format(notification["user_name"]),
+                        name="{} is now live on Twitch!".format(
+                            notification["user_name"]
+                        ),
                         url="https://twitch.tv/{}".format(notification["user_login"]),
                     )
                     embed.add_field(name="Game", value="Unknown", inline=True)
@@ -261,7 +276,9 @@ class twitch(commands.Cog):
                         color=0x6034B2,
                     )
                     embed.set_author(
-                        name="{} is now live on Twitch!".format(notification["user_name"]),
+                        name="{} is now live on Twitch!".format(
+                            notification["user_name"]
+                        ),
                         url="https://twitch.tv/{}".format(notification["user_login"]),
                     )
                     embed.add_field(
@@ -304,7 +321,7 @@ class twitch(commands.Cog):
                 "❌ You don't have permission to use this command.", ephemeral=True
             )
             return
-        
+
         if action.lower() == "add":
             response = followstreamer(streamer=streamername)
             response = response.replace(", ", "\n")

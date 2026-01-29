@@ -5,7 +5,7 @@ import asyncio
 import os
 
 FFMPEG_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "bin", "ffmpeg.exe")
-# For Linux/Mac use: 
+# For Linux/Mac use:
 # FFMPEG_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "bin", "ffmpeg")
 
 FFMPEG_OPTIONS = {
@@ -146,7 +146,7 @@ class MusicBot(commands.Cog):
             return await ctx.send("Queue is empty!")
 
         queue_list = "\n".join(
-            [f"{i+1}. {title}" for i, (url, title) in enumerate(self.queue)]
+            [f"{i + 1}. {title}" for i, (url, title) in enumerate(self.queue)]
         )
         await ctx.send(f"**Current Queue:**\n{queue_list}")
 
