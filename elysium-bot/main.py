@@ -12,9 +12,25 @@ from dotenv import load_dotenv
 # Load .env file
 load_dotenv()
 
-# Constants #
-public_log = 1234227629557547029  # Change to you public bot log channel ID
-private_log = 1234227628924207283  # Change to you private bot log channel ID
+# Load config for channel IDs
+import json
+
+def load_bot_config():
+    config_path = os.path.join(os.path.dirname(__file__), "config.json")
+    try:
+        with open(config_path) as config_file:
+            config = json.load(config_file)
+            return config.get("bot", {})
+    except FileNotFoundError:
+        print(f"⚠️ Config file not found at: {config_path}")
+        return {}
+    except json.JSONDecodeError as e:
+        print(f"⚠️ Error parsing config file: {e}")
+        return {}
+
+bot_config = load_bot_config()
+public_log = bot_config.get("public_log", 1234227629557547029)  # Change to your public bot log channel ID
+private_log = bot_config.get("private_log", 1234227628924207283)  # Change to your private bot log channel ID
 
 
 # Load Client token from environment variables
@@ -36,7 +52,7 @@ async def load():
                 await Client.load_extension(f"cogs.{filename[:-3]}")
                 print(f"✅ {filename} Cog Loaded!")
         except Exception as e:
-            print(f"❌ Failed to load Twitch Cog: {e}")
+            print(f"❌ Failed to load {filename} Cog: {e}")
 
 
 @Client.event

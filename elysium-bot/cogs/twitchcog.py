@@ -9,9 +9,11 @@ from datetime import datetime, timedelta
 
 
 allowed_mentions = discord.AllowedMentions(roles=True)
-twcord_userid = (
-    972663150455451689  # The ID of the person handling the bot's Twitch notifications.
-)
+
+def get_twcord_userid():
+    """Get the Twitch command user ID from config."""
+    config = load_config()
+    return config.get("twitch", {}).get("twcord_userid", 972663150455451689)
 
 
 # Get the absolute path to the config file
@@ -297,7 +299,7 @@ class twitch(commands.Cog):
         action: str,
         streamername: Optional[str],
     ):
-        if interaction.user.id != twcord_userid:
+        if interaction.user.id != get_twcord_userid():
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command.", ephemeral=True
             )
@@ -326,7 +328,7 @@ class twitch(commands.Cog):
     )
     @app_commands.describe(channel="channel?")
     async def setlivechannel(self, interaction: discord.Interaction, channel: str):
-        if interaction.user.id != twcord_userid:
+        if interaction.user.id != get_twcord_userid():
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command.", ephemeral=True
             )
@@ -344,7 +346,7 @@ class twitch(commands.Cog):
     async def setlivemessage(
         self, interaction: discord.Interaction, message: str, mentioned: str
     ) -> None:
-        if interaction.user.id != twcord_userid:
+        if interaction.user.id != get_twcord_userid():
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command.", ephemeral=True
             )

@@ -1,0 +1,4 @@
+discord.py>=2.5.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+yt-dlp>=2023.10.7

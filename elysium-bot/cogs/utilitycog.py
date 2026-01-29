@@ -7,11 +7,42 @@ from discord import app_commands
 
 # Datetime for Client startup tracking
 start_time = datetime.now()
-dev_id = 876876129368150018  # If you are hosting this bot, change this to your Discord UserID
 
-bot_notifications = 1234227629352288275
-public_log = 1234227629557547029  # Change to you public bot log channel ID
-private_log = 1234227628924207283  # Change to you private bot log channel ID
+# Load bot config
+import json
+import os
+
+def load_bot_config():
+    """Load bot configuration from config.json."""
+    config_path = os.path.join(os.path.dirname(__file__), "..", "config.json")
+    try:
+        with open(config_path) as config_file:
+            config = json.load(config_file)
+            return config.get("bot", {})
+    except FileNotFoundError:
+        # Try alternative paths
+        alternatives = [
+            os.path.join(os.path.dirname(__file__), "config.json"),
+            "./config.json",
+            "../config.json",
+            "config.json"
+        ]
+        for alt_path in alternatives:
+            try:
+                with open(alt_path) as config_file:
+                    config = json.load(config_file)
+                    return config.get("bot", {})
+            except FileNotFoundError:
+                continue
+        return {}
+    except json.JSONDecodeError:
+        return {}
+
+bot_config = load_bot_config()
+dev_id = bot_config.get("dev_id", 876876129368150018)  # If you are hosting this bot, change this to your Discord UserID
+bot_notifications = bot_config.get("bot_notifications", 1234227629352288275)
+public_log = bot_config.get("public_log", 1234227629557547029)  # Change to your public bot log channel ID
+private_log = bot_config.get("private_log", 1234227628924207283)  # Change to your private bot log channel ID
 
 
 class utility(commands.Cog):

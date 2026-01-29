@@ -1,17 +1,23 @@
 {
-  "": {
-    "twitch": {
-      "client_id": "xxx",
-      "client_secret": "xxx",
-      "access_token": "xxx",
-      "channel_id": "xxx",
-      "live_msg": "xxx",
-      "expire_date": 1669483138,
-      "watchlist": ["streamer1", "streamer2", "streamer3"]
-    },
-    "moderation": {
-      "mod_role": "xxx",
-      "block_words": ["xxx", "xxx", "xxx"]
-    }
+  "bot": {
+    "public_log": 1234227629557547029,
+    "private_log": 1234227628924207283,
+    "dev_id": 876876129368150018,
+    "bot_notifications": 1234227629352288275
+  },
+  "twitch": {
+    "client_id": "xxx",
+    "client_secret": "xxx",
+    "access_token": "xxx",
+    "channel_id": "xxx",
+    "live_msg": "xxx",
+    "expire_date": 1669483138,
+    "watchlist": ["streamer1", "streamer2", "streamer3"],
+    "twcord_userid": 972663150455451689
+  },
+  "moderation": {
+    "mod_role": "xxx",
+    "mod_channel": "xxx",
+    "block_words": ["xxx", "xxx", "xxx"]
   }
 }

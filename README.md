@@ -120,7 +120,7 @@ Having a discord developer account with 2FA enabled.
 2. In the root directory create a `.env` file.
    inside the `.env` file you will have a constant called `ELYSIUM_TOKEN`. Grab your Bot Token from the [Discord Developer Portal](https://discord.com/developers) and put it into your `.env` file like so:
    `.env
-  ELYSIAN_TOKEN="KUFHSDIUHKUh-UHLIUkudshliughj89w3eyr"
+  ELYSIUM_TOKEN="KUFHSDIUHKUh-UHLIUkudshliughj89w3eyr"
   `
 
 3. Edit the `main.py` file's constants, you'll need to change the `public_log` and `private_log` to the discord channel ids in which you want bot info such as, turning on and off to be displayed.

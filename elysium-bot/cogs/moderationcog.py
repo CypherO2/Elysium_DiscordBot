@@ -3,25 +3,29 @@ import json
 import datetime
 import typing
 import asyncio
+import re
 from typing import Optional
 from discord.ext import commands, tasks
 from discord import app_commands
 from datetime import datetime, date, time, timezone, timedelta
 from twitchcog import load_config
-from main import Client
 
 class moderation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @Client.event
+    @commands.Cog.listener()
     async def on_message(self, msg) -> None:
         config = load_config()
         channel = self.bot.get_channel(config["moderation"]["mod_channel"])
         block_list = config["moderation"]["block_words"]
         if msg.author != self.bot.user:
+            msg_lower = msg.content.lower()
             for text in block_list:
-                if text in str(msg.content.lower()):
+                # Use word boundaries to prevent false positives (e.g., "class" matching "ass")
+                # Check if the word appears as a whole word or at word boundaries
+                pattern = r'\b' + re.escape(text.lower()) + r'\b'
+                if re.search(pattern, msg_lower):
                     embed = discord.Embed(
                         title="**ALERT!**",
                         description=f"In: {msg.channel.mention}\nReason: {msg.author} said -> ||{text}||\n<@&{config['moderation']['mod_role']}>",
@@ -30,6 +34,7 @@ class moderation(commands.Cog):
                     )
                     await msg.delete()
                     await channel.send(embed=embed)
+                    break  # Only flag once per message
             if self.bot.user in msg.mentions:
                 if "kys" in msg.content:
                     await msg.channel.send(
